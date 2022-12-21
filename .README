@@ -1,3 +1,7 @@
 1. Start ngrok.exe
 Type "ngrok http 5000"
 In Slack API, copy URL from ngrok and add /slack/events
+
+
+To deploy:
+gcloud run deploy --set-env-vars="SIGNING_SECRET=f9177bf388783e83cdc5a9c4a35a8b59"  --set-env-vars="SLACK_TOKEN=xoxb-1882275633779-3540003211265-x0uQk9TwTkAVkNL4Do0Alp4Z" --set-env-vars="SLACK_USER_TOKEN=xoxp-1882275633779-2720226721461-4553605613492-652b15864bdc589276428bace8ffcbe5" 

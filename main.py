@@ -1,11 +1,14 @@
 import slack
 import os
 import logging
+import random
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask
 from slackeventsapi import SlackEventAdapter
 from slack.errors import SlackApiError
+from datetime import datetime, timedelta
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,7 +21,34 @@ slack_event_adapter = SlackEventAdapter(
     os.environ['SIGNING_SECRET'], '/slack/events', app)
 
 client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
-#BOT_ID = client.api_call(auth.test)['user_id']
+
+welcome_messages1 = ["Hey", "Hi", "Hello"]
+welcome_messages2 = ["Welcome to the community!", "Welcome!",
+                     "Good to have you with us!", "Good to see you here", "Glad to have you here!"]
+welcome_messages3 = ["Let me know if you have any questions", "Let me know if you need my help", "I’m available for anything you might need", "Happy to answer questions!",
+                     "Let me know if there's anything I can help you with", "Let us know how we can help", "Feel free to ask us anything!", "Let me know if there’s anything I can do for you", "Ask me anything!"]
+welcome_messages4 = [":blush:", ":wave:", ":muscle:", ":cherry_blossom:",
+                     ":star:", ":check:", ":sparkles:", ":purple_heart:", ":v:"]
+
+
+def delay_message():
+    delay = random.randint(40, 240)
+    new_time = datetime.now() + timedelta(seconds=delay)
+    unix_new_time = time.mktime(new_time.timetuple())
+    print(unix_new_time)
+    return unix_new_time
+
+
+delay_message()
+
+
+def pick_random(arr1, arr2, arr3, arr4):
+
+    result1 = random.choice(arr1)
+    result2 = random.choice(arr2)
+    result3 = random.choice(arr3)
+    result4 = random.choice(arr4)
+    return (result1, result2, result3, result4)
 
 
 def fetch_user_info(user_id):
@@ -41,13 +71,17 @@ def message(payload):
     channel_id = event.get('channel')
     user_id = event.get('user')
     text = event.get('text')
-    custom_text = 'Welcome <@' + fetch_user_info(user_id) + '>'
 
-    # if BOT_ID != user_id
+    result = pick_random(welcome_messages1, welcome_messages2,
+                         welcome_messages3, welcome_messages4)
+    custom_text = result[0] + ' <@' + fetch_user_info(
+        user_id) + '>! ' + result[1] + ' ' + result[2] + ' ' + result[3]
 
-    client.chat_postMessage(channel=channel_id, text=custom_text)
+    client.chat_scheduleMessage(
+        channel=channel_id, text=custom_text, post_at=delay_message(), as_user=True, token=os.environ['SLACK_USER_TOKEN'])
 
 
 if __name__ == "__main__":
-    #app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    # Enable to run localy using Ngrok
+    # app.run(debug=True)
