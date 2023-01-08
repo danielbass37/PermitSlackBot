@@ -30,6 +30,9 @@ welcome_messages3 = ["Let me know if you have any questions", "Let me know if yo
 welcome_messages4 = [":blush:", ":wave:", ":muscle:", ":cherry_blossom:",
                      ":star:", ":check:", ":sparkles:", ":purple_heart:", ":v:"]
 
+# Track last users we messaged
+recent_users = []
+
 
 def delay_message():
     delay = random.randint(40, 240)
@@ -71,17 +74,25 @@ def message(payload):
     channel_id = event.get('channel')
     user_id = event.get('user')
     text = event.get('text')
+    
+    # avoid duplicate sends - by checking user didn't appear before
+    if user_id not in recent_users:
+        result = pick_random(welcome_messages1, welcome_messages2,
+                            welcome_messages3, welcome_messages4)
+        custom_text = result[0] + ' <@' + fetch_user_info(
+            user_id) + '>! ' + result[1] + ' ' + result[2] + ' ' + result[3]
 
-    result = pick_random(welcome_messages1, welcome_messages2,
-                         welcome_messages3, welcome_messages4)
-    custom_text = result[0] + ' <@' + fetch_user_info(
-        user_id) + '>! ' + result[1] + ' ' + result[2] + ' ' + result[3]
+        client.chat_scheduleMessage(
+            channel=channel_id, text=custom_text, post_at=delay_message(), as_user=True, token=os.environ['SLACK_USER_TOKEN'])
 
-    client.chat_scheduleMessage(
-        channel=channel_id, text=custom_text, post_at=delay_message(), as_user=True, token=os.environ['SLACK_USER_TOKEN'])
+        # remember user
+        recent_users.append(user_id)
 
+        # limit how far we remember to last ten
+        if len(user_id) > 10:
+            recent_users = recent_users[-10:]
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
-    # Enable to run localy using Ngrok
+    # Enable to run locally using Ngrok
     # app.run(debug=True)
