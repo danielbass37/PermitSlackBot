@@ -24,7 +24,7 @@ client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
 
 welcome_messages1 = ["Hey", "Hi", "Hello"]
 welcome_messages2 = ["Welcome to the community!", "Welcome!",
-                     "Good to have you with us!", "Good to see you here", "Glad to have you here!"]
+                     "Good to have you with us!", "Good to see you here.", "Glad to have you here!"]
 welcome_messages3 = ["Let me know if you have any questions", "Let me know if you need my help", "I’m available for anything you might need", "Happy to answer questions!",
                      "Let me know if there's anything I can help you with", "Let us know how we can help", "Feel free to ask us anything!", "Let me know if there’s anything I can do for you", "Ask me anything!"]
 welcome_messages4 = [":blush:", ":wave:", ":muscle:", ":cherry_blossom:",
@@ -35,7 +35,7 @@ recent_users = []
 
 
 def delay_message():
-    delay = random.randint(40, 240)
+    delay = random.randint(40, 45)
     new_time = datetime.now() + timedelta(seconds=delay)
     unix_new_time = time.mktime(new_time.timetuple())
     print(unix_new_time)
@@ -74,23 +74,34 @@ def message(payload):
     channel_id = event.get('channel')
     user_id = event.get('user')
     text = event.get('text')
-    
-    # avoid duplicate sends - by checking user didn't appear before
-    if user_id not in recent_users:
-        result = pick_random(welcome_messages1, welcome_messages2,
-                            welcome_messages3, welcome_messages4)
-        custom_text = result[0] + ' <@' + fetch_user_info(
-            user_id) + '>! ' + result[1] + ' ' + result[2] + ' ' + result[3]
+    global recent_users
 
-        client.chat_scheduleMessage(
-            channel=channel_id, text=custom_text, post_at=delay_message(), as_user=True, token=os.environ['SLACK_USER_TOKEN'])
+    try:
 
-        # remember user
-        recent_users.append(user_id)
+        # avoid duplicate sends - by checking user didn't appear before
+        if user_id not in recent_users:
+            result = pick_random(welcome_messages1, welcome_messages2,
+                                 welcome_messages3, welcome_messages4)
+            custom_text = result[0] + ' <@' + fetch_user_info(
+                user_id) + '>! ' + result[1] + ' ' + result[2] + ' ' + result[3]
 
-        # limit how far we remember to last ten
-        if len(user_id) > 10:
-            recent_users = recent_users[-10:]
+            # Logging to see potential errors
+            #logging.info(event, channel_id, user_id, custom_text)
+
+            client.chat_scheduleMessage(
+                channel=channel_id, text=custom_text, post_at=delay_message(), as_user=True, token=os.environ['SLACK_USER_TOKEN'])
+
+            # remember user
+            recent_users.append(user_id)
+
+            # limit how far we remember to last ten
+            if len(user_id) > 10:
+                recent_users = recent_users[-10:]
+        return
+
+    except:
+        return
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
