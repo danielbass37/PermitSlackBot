@@ -41,10 +41,6 @@ def delay_message():
     print(unix_new_time)
     return unix_new_time
 
-
-delay_message()
-
-
 def pick_random(arr1, arr2, arr3, arr4):
 
     result1 = random.choice(arr1)
@@ -97,10 +93,9 @@ def message(payload):
             # limit how far we remember to last ten
             if len(user_id) > 10:
                 recent_users = recent_users[-10:]
-        return
-
-    except:
-        return
+                
+    except Exception as e:
+        raise e
 
 
 if __name__ == "__main__":
